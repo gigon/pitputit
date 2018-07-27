@@ -40,27 +40,7 @@ function updateCurrentUser() {
     }
 }
 
-// Returns true if a user is signed-in.
-function isUserSignedIn() {
-    return userName != "Guest";
-}
-
 // DOM event handlers
-
-function onLoginClicked() {
-    var newUserName = prompt("User name?");
-    if (newUserName) {
-        userName = newUserName;
-        updateCurrentUser();
-    }
-    return false;
-}
-
-function onLogoutClicked() {
-    userName = "Guest";
-    updateCurrentUser();
-    return false;
-}
 
 function onSubmitMessageClicked() {
     var messageText = textUserMsg.value.trim();
@@ -94,6 +74,64 @@ buttonSubmitMsg.onclick = onSubmitMessageClicked;
 buttonLogin.onclick = onLoginClicked;
 buttonLogout.onclick = onLogoutClicked;
 
-updateCurrentUser();
+//------------------------------------------------------------------
+// Firebase
+//
 
-updateMessages();
+function onAuthStateChanged(user) {
+    if (user) { // User is signed in!
+      // Get profile pic and user's name from the Firebase user object.
+      userName = user.displayName;
+      userIconUrl =  user.photoURL || "";
+      // Set the user's profile pic and name.
+    //   this.userPic.style.backgroundImage = 'url(' + (profilePicUrl || '/images/profile_placeholder.png') + ')';
+    //   this.userName.textContent = userName;
+    } else {
+        userName = "Guest";
+        userIconUrl = "";
+    }
+
+    updateCurrentUser();
+}
+
+function onLoginClicked() {
+    // Sign in Firebase using popup auth and Google as the identity provider.
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider);
+}
+
+function onLogoutClicked() {
+    // Sign out of Firebase.
+    firebase.auth().signOut();
+}
+
+// Returns true if a user is signed-in.
+function isUserSignedIn() {
+    return !!firebase.auth().currentUser;
+}
+
+// Returns the signed-in user's profile Pic URL.
+function getProfilePicUrl() {
+    return firebase.auth().currentUser.photoURL || '/images/profile_placeholder.png';
+}
+  
+// Returns the signed-in user's display name.
+function getUserName() {
+    return firebase.auth().currentUser.displayName;
+}
+
+// Initialize Firebase
+var config = {
+    apiKey: "AIzaSyDTO5k3aS-mOZCSA2PJ1w8Eakn91xwtdg4",
+    authDomain: "pitputit-6af13.firebaseapp.com",
+    databaseURL: "https://pitputit-6af13.firebaseio.com",
+    projectId: "pitputit-6af13",
+    storageBucket: "",
+    messagingSenderId: "849608190982"
+};
+firebase.initializeApp(config);
+
+// Listen to auth state changes.
+firebase.auth().onAuthStateChanged(onAuthStateChanged);
+
+onAuthStateChanged();
