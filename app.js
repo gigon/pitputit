@@ -53,18 +53,20 @@ function onLoginClicked() {
         userName = newUserName;
         updateCurrentUser();
     }
+    return false;
 }
 
 function onLogoutClicked() {
     userName = "Guest";
     updateCurrentUser();
+    return false;
 }
 
 function onSubmitMessageClicked() {
     var messageText = textUserMsg.value.trim();
         
     if (!messageText) {
-        return; // do not send empty messages
+        return false; // do not send empty messages
     }
 
     var newMessage = { userName: userName, messageText: messageText };
@@ -73,6 +75,8 @@ function onSubmitMessageClicked() {
     textUserMsg.value = "";
 
     updateMessages(); // show the new message in the chat box
+
+    return false;
 }
 
 // Shortcuts to DOM Elements.
