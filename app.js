@@ -2,6 +2,7 @@
 var messagesArray = [];  // The messages
 
 var userName = "Guest"; // The current user name
+var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
 function sendNewMessage(newMessage) {
     messagesArray.push(newMessage);
@@ -26,14 +27,22 @@ function buildMessagesHtml() {
 
 function updateCurrentUser() {
     spanUserName.innerHTML = userName;
+    userIcon.src = userIconUrl;
 
-    if (userName == "Guest") {
+    if (isUserSignedIn() == false) {
         pLogin.style.display = "block";
         pLogout.style.display = "none";
+        userIcon.style.display = "none";
     } else {
+        userIcon.style.display = "block";
         pLogout.style.display = "block";
         pLogin.style.display = "none";    
     }
+}
+
+// Returns true if a user is signed-in.
+function isUserSignedIn() {
+    return userName != "Guest";
 }
 
 // DOM event handlers
@@ -75,6 +84,7 @@ var buttonLogin = document.getElementById("buttonLogin");
 var buttonLogout = document.getElementById("buttonLogout");
 var divChatBox = document.getElementById("divChatBox");
 var spanUserName = document.getElementById("spanUserName");
+var userIcon = document.getElementsByClassName("userIcon")[0];
 
 buttonSubmitMsg.onclick = onSubmitMessageClicked;
 buttonLogin.onclick = onLoginClicked;
