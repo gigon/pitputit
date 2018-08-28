@@ -8,7 +8,7 @@ function sendNewMessage(newMessage) {
     messagesArray.push(newMessage);
 }
 
-function updateMessages() {
+function displayMessages() {
     var messagesHtml = buildMessagesHtml();
 	divChatBox.innerHTML = messagesHtml; // insert chat divs into the #divChatBox div			
 }
@@ -17,12 +17,19 @@ function buildMessagesHtml() {
     var messagesHtml = "";
 
     for (var i=0; i < messagesArray.length; i++) {
-        var msg = messagesArray[i];
-        var divHtml = "<div class='msgln'><b>" + msg.userName + "</b>: " + msg.messageText + "<br /></div>";
-        messagesHtml += divHtml;
+        messagesHtml += buildMessageHtml(messagesArray[i]);
     }
 
     return messagesHtml;
+}
+
+function buildMessageHtml(msg) {
+    var messageHtml = "<div class='msgln'><b>" + msg.userName + "</b>: " + msg.messageText + "<br /></div>";
+    return messageHtml;
+}
+
+function insertMessageHtml(msg) {
+    divChatBox.innerHTML += buildMessageHtml(msg);
 }
 
 function updateCurrentUser() {
@@ -70,11 +77,11 @@ function onSubmitMessageClicked() {
     }
 
     var newMessage = { userName: userName, messageText: messageText };
-    sendNewMessage( newMessage );		
+    sendNewMessage(newMessage);		
 
     textUserMsg.value = "";
 
-    updateMessages(); // show the new message in the chat box
+    insertMessageHtml(newMessage); // show the new message in the chat box
 
     return false;
 }
@@ -94,6 +101,48 @@ buttonSubmitMsg.onclick = onSubmitMessageClicked;
 buttonLogin.onclick = onLoginClicked;
 buttonLogout.onclick = onLogoutClicked;
 
+//------------------------------------------------------------------
+// Firebase
+//
+
+// Initialize Firebase
+var config = {
+    apiKey: "AIzaSyDTO5k3aS-mOZCSA2PJ1w8Eakn91xwtdg4",
+    authDomain: "pitputit-6af13.firebaseapp.com",
+    databaseURL: "https://pitputit-6af13.firebaseio.com",
+    projectId: "pitputit-6af13",
+    storageBucket: "",
+    messagingSenderId: "849608190982"
+};
+firebase.initializeApp(config);
+
+var messagesRef = firebase.database().ref('messages');
+
+// Load existing messages and listen for new ones
+var loadMessages = function() {
+    messagesRef.once('value', function(snap) {
+        var messagesObj = snap.val();
+        messagesArray = flatten(messagesObj);
+        displayMessages();
+    });
+
+    messagesRef.on('child_added', function(snap) {
+        insertMessageHtml(snap.val()); // show the new message in the chat box
+    })
+};
+  
+var flatten = function(obj) {
+    var arr = [];
+    for (prop in obj) {
+        arr.push(obj[prop]);
+    }
+    return arr;
+}
+
+//
+// Firebase
+//------------------------------------------------------------------
+
 updateCurrentUser();
 
-updateMessages();
+loadMessages();
