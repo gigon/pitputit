@@ -4,10 +4,6 @@ var messagesArray = [];  // The messages
 var userName = "Guest"; // The current user name
 var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
-function sendNewMessage(newMessage) {
-    messagesArray.push(newMessage);
-}
-
 function displayMessages() {
     var messagesHtml = buildMessagesHtml();
 	divChatBox.innerHTML = messagesHtml; // insert chat divs into the #divChatBox div			
@@ -80,9 +76,6 @@ function onSubmitMessageClicked() {
     sendNewMessage(newMessage);		
 
     textUserMsg.value = "";
-
-    insertMessageHtml(newMessage); // show the new message in the chat box
-
     return false;
 }
 
@@ -131,6 +124,16 @@ var loadMessages = function() {
     })
 };
   
+function sendNewMessage(newMessage) {
+    messagesRef.push(newMessage, function onComplete(err) {
+        if (err) {
+            console.error("sendNewMessage: push failed with " + err);
+        } else {
+            console.log("sendNewMessage: done");
+        }
+    });
+}
+
 var flatten = function(obj) {
     var arr = [];
     for (prop in obj) {
