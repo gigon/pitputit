@@ -68,6 +68,12 @@ function onLogoutClicked() {
 }
 
 function onSubmitMessageClicked() {
+    if (!isUserSignedIn()) {
+        alert('Please login in order to send messages');
+        cleanNewMessageInputs();
+        return false;
+    }
+
     var messageText = textUserMsg.value.trim();
     var newMessage = { userName: userName, messageText: messageText };
 
@@ -82,12 +88,14 @@ function onSubmitMessageClicked() {
         return false;
     }
 
-    sendNewMessage(newMessage, imageFile, function() {
-        textUserMsg.value = "";
-        inputMediaCapture.value = null;
-    });
+    sendNewMessage(newMessage, imageFile, cleanNewMessageInputs);
 
     return false;
+}
+
+function cleanNewMessageInputs() {
+    textUserMsg.value = "";
+    inputMediaCapture.value = null;
 }
 
 // Shortcuts to DOM Elements.
@@ -150,11 +158,13 @@ function sendNewMessage(newMessage, imageFile, onFinished) {
                 sendNewMessage(newMessage, null, onFinished);
             });
         }).catch(function(err) {
-            alert("sendNewMessage: image upload failed: " + err);
+            alert("sendNewMessage: image upload failed: " + err.message);
             onFinished(false);
         });
         return;
     }
+
+    newMessage['userKey'] = isUserSignedIn() ? firebase.auth().currentUser.uid : "no-uid";
 
     messagesRef.push(newMessage, function onComplete(err) {
         if (err) {
@@ -177,8 +187,8 @@ var flatten = function(obj) {
 
 function onAuthStateChanged(user) {
     if (user) { // User is signed in!
-      userName = user.displayName;
-      userIconUrl =  user.photoURL || "";
+        userName = user.displayName;
+        userIconUrl =  user.photoURL || "";
     } else {
         userName = "Guest";
         userIconUrl = "";
