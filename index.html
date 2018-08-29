@@ -14,11 +14,15 @@
     </div>
      
     <div id="divChatBox"></div>
-     
-    <form name="message" action="">
-        <input name="textUserMsg" type="text" id="textUserMsg" size="63" />
-        <input name="buttonSubmitMsg" type="submit" id="buttonSubmitMsg" value="Send" />
-    </form>
+    
+    <div id="divNewMessage">
+        <form name="message" action="">
+            <p>New Message</p>
+            <input id="inputMediaCapture" type="file" accept="image/*,capture=camera"></input>
+            <input id="textUserMsg" type="text" size="63" />
+            <input id="buttonSubmitMsg" type="submit" value="Send" />
+        </form>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
