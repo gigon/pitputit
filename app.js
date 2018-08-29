@@ -2,7 +2,7 @@
 var messagesArray = [];  // The messages
 
 var userName = "Guest"; // The current user name
-var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
+var userIconUrl = ""; // the current user icon url
 
 function displayMessages() {
     divChatBox.innerHTML = buildMessagesHtml();
@@ -39,36 +39,31 @@ function updateCurrentUser() {
     spanUserName.innerHTML = userName;
     userIcon.src = userIconUrl;
 
-    if (isUserSignedIn() == false) {
-        pLogin.style.display = "block";
-        pLogout.style.display = "none";
-        userIcon.style.display = "none";
-    } else {
+    if (isUserSignedIn()) {
         userIcon.style.display = "block";
         pLogout.style.display = "block";
         pLogin.style.display = "none";    
+    } else {
+        pLogin.style.display = "block";
+        pLogout.style.display = "none";
+        userIcon.style.display = "none";
     }
 }
 
 // Returns true if a user is signed-in.
 function isUserSignedIn() {
-    return userName != "Guest";
+    return isUserSignedInFirebase();
 }
 
 // DOM event handlers
 
 function onLoginClicked() {
-    var newUserName = prompt("User name?");
-    if (newUserName) {
-        userName = newUserName;
-        updateCurrentUser();
-    }
+    doSignIn();
     return false;
 }
 
 function onLogoutClicked() {
-    userName = "Guest";
-    updateCurrentUser();
+    doSignout();
     return false;
 }
 
@@ -79,6 +74,12 @@ function onSubmitMessageClicked() {
     var imageFile;
     if (inputMediaCapture.files && inputMediaCapture.files.length) {
         imageFile = inputMediaCapture.files[0];
+    }
+
+    if (!messageText && !imageFile) {
+        alert("Please select an image and/or fill text");
+        textUserMsg.focus();
+        return false;
     }
 
     sendNewMessage(newMessage, imageFile, function() {
@@ -174,10 +175,48 @@ var flatten = function(obj) {
     return arr;
 }
 
+function onAuthStateChanged(user) {
+    if (user) { // User is signed in!
+      userName = user.displayName;
+      userIconUrl =  user.photoURL || "";
+    } else {
+        userName = "Guest";
+        userIconUrl = "";
+    }
+
+    updateCurrentUser();
+}
+
+// Sign in Firebase using popup auth and Google as the identity provider.
+function doSignIn() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).catch(function(err) {
+        alert('doSignIn: signInWithPopup threw ' + JSON.stringify(err));
+    });
+}
+
+// Sign out of Firebase.
+function doSignout() {
+    firebase.auth().signOut();
+}
+
+// Returns true if a user is signed-in to Firebase.
+function isUserSignedInFirebase() {
+    return !!firebase.auth().currentUser;
+}
+  
+// Returns the signed-in user's display name.
+function getUserName() {
+    return firebase.auth().currentUser.displayName;
+}
+
+// Listen to auth state changes.
+firebase.auth().onAuthStateChanged(onAuthStateChanged);
+
+onAuthStateChanged();
+
 //
 // Firebase
 //------------------------------------------------------------------
-
-updateCurrentUser();
 
 loadMessages();
