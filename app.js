@@ -155,14 +155,6 @@ function sendNewMessage(newMessage, imageFile, onFinished) {
     });
 }
 
-var flatten = function(obj) {
-    var arr = [];
-    for (prop in obj) {
-        arr.push(obj[prop]);
-    }
-    return arr;
-}
-
 //
 // Firebase
 //------------------------------------------------------------------

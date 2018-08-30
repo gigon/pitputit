@@ -40,7 +40,7 @@ a {
     border:1px solid #ACD8F0;
     overflow:auto; }
   
-#textUserMsg {
+input[type='text'] {
     width:395px;
     border:1px solid #ACD8F0; }
   
