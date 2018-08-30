@@ -1,6 +1,4 @@
 
-var messagesArray = [];  // The messages
-
 var userName = "Guest"; // The current user name
 var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
