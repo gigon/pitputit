@@ -4,20 +4,6 @@ var messagesArray = [];  // The messages
 var userName = "Guest"; // The current user name
 var userIconUrl = ""; // the current user icon url
 
-function displayMessages() {
-    divChatBox.innerHTML = buildMessagesHtml();
-}
-
-function buildMessagesHtml() {
-    var messagesHtml = "";
-
-    for (var i = messagesArray.length - 1; i >= 0; i--) {
-        messagesHtml += buildMessageHtml(messagesArray[i]);
-    }
-
-    return messagesHtml;
-}
-
 function buildMessageHtml(msg) {
     var messageHtml = "<div class='msgln'>";
     messageHtml += "<b>" + msg.userName + ":</b>";
@@ -133,13 +119,8 @@ var messagesRef = firebase.database().ref('messages');
 
 // Load existing messages and listen for new ones
 var loadMessages = function() {
-    messagesRef.once('value', function(snap) {
-        var messagesObj = snap.val();
-        messagesArray = flatten(messagesObj);
-        displayMessages();
-    });
-
     messagesRef.on('child_added', function(snap) {
+        console.log('child_added called with ' + (snap.val()));
         insertMessageHtml(snap.val()); // show the new message in the chat box
     })
 };
