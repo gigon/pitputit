@@ -1,8 +1,6 @@
 
-var messagesArray = [];  // The messages
-
 var userName = "Guest"; // The current user name
-var userIconUrl = ""; // the current user icon url
+var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
 function buildMessageHtml(msg) {
     var messageHtml = "<div class='msgln'>";
@@ -156,14 +154,6 @@ function sendNewMessage(newMessage, imageFile, onFinished) {
             onFinished(true);
         }
     });
-}
-
-var flatten = function(obj) {
-    var arr = [];
-    for (prop in obj) {
-        arr.push(obj[prop]);
-    }
-    return arr;
 }
 
 function onAuthStateChanged(user) {
