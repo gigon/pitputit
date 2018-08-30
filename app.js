@@ -4,20 +4,6 @@ var messagesArray = [];  // The messages
 var userName = "Guest"; // The current user name
 var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
-function displayMessages() {
-    divChatBox.innerHTML = buildMessagesHtml();
-}
-
-function buildMessagesHtml() {
-    var messagesHtml = "";
-
-    for (var i = messagesArray.length - 1; i >= 0; i--) {
-        messagesHtml += buildMessageHtml(messagesArray[i]);
-    }
-
-    return messagesHtml;
-}
-
 function buildMessageHtml(msg) {
     var messageHtml = "<div class='msgln'>";
     messageHtml += "<b>" + msg.userName + ":</b>";
@@ -39,14 +25,14 @@ function updateCurrentUser() {
     spanUserName.innerHTML = userName;
     userIcon.src = userIconUrl;
 
-    if (isUserSignedIn() == false) {
-        pLogin.style.display = "block";
-        pLogout.style.display = "none";
-        userIcon.style.display = "none";
-    } else {
+    if (isUserSignedIn()) {
         userIcon.style.display = "block";
         pLogout.style.display = "block";
         pLogin.style.display = "none";    
+    } else {
+        pLogin.style.display = "block";
+        pLogout.style.display = "none";
+        userIcon.style.display = "none";
     }
 }
 
@@ -81,12 +67,20 @@ function onSubmitMessageClicked() {
         imageFile = inputMediaCapture.files[0];
     }
 
-    sendNewMessage(newMessage, imageFile, function() {
-        textUserMsg.value = "";
-        inputMediaCapture.value = null;
-    });
+    if (!messageText && !imageFile) {
+        alert("Please select an image and/or fill text");
+        textUserMsg.focus();
+        return false;
+    }
+
+    sendNewMessage(newMessage, imageFile, cleanNewMessageInputs);
 
     return false;
+}
+
+function cleanNewMessageInputs() {
+    textUserMsg.value = "";
+    inputMediaCapture.value = null;
 }
 
 // Shortcuts to DOM Elements.
@@ -124,13 +118,8 @@ var messagesRef = firebase.database().ref('messages');
 
 // Load existing messages and listen for new ones
 var loadMessages = function() {
-    messagesRef.once('value', function(snap) {
-        var messagesObj = snap.val();
-        messagesArray = flatten(messagesObj);
-        displayMessages();
-    });
-
     messagesRef.on('child_added', function(snap) {
+        console.log('child_added called with ' + (snap.val()));
         insertMessageHtml(snap.val()); // show the new message in the chat box
     })
 };
@@ -149,7 +138,7 @@ function sendNewMessage(newMessage, imageFile, onFinished) {
                 sendNewMessage(newMessage, null, onFinished);
             });
         }).catch(function(err) {
-            alert("sendNewMessage: image upload failed: " + err);
+            alert("sendNewMessage: image upload failed: " + err.message);
             onFinished(false);
         });
         return;
