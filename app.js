@@ -54,12 +54,6 @@ function onLogoutClicked() {
 }
 
 function onSubmitMessageClicked() {
-    if (!isUserSignedIn()) {
-        alert('Please login in order to send messages');
-        cleanNewMessageInputs();
-        return false;
-    }
-
     var messageText = textUserMsg.value.trim();
     var newMessage = { userName: userName, messageText: messageText };
 
