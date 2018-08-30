@@ -18,6 +18,7 @@ a {
     a:hover { text-decoration:underline; }
   
 #wrapper, #loginform {
+    float: left;
     margin:0 auto;
     padding-bottom:25px;
     background:#EBF4FB;
@@ -39,10 +40,12 @@ a {
     border:1px solid #ACD8F0;
     overflow:auto; }
   
-#textUserMsg {
+input[type='text'] {
     width:395px;
     border:1px solid #ACD8F0; }
-  
+
+#textImageUrl { margin-right: 48px; margin-bottom: 4px; }
+
 #submit { width: 60px; }
   
 .error { color: #ff0000; }
@@ -61,4 +64,9 @@ a {
 #pLogin { float:right; }
 #pLogout { float:right; }
   
-.msgln { margin:0 0 2px 0; }
+.msgln { margin:0 0 2px 0; border-bottom: 1px beige solid; }
+
+.msgln img { max-width: 100px; max-height: 100px; }
+
+form p { text-align: left; margin: 0 0 10px 30px; font-weight: bold; }
+#inputMediaCapture { float: left; margin: 0 0 10px 30px; }
