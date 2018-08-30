@@ -26,12 +26,9 @@ function buildMessageHtml(msg) {
     return messageHtml;
 }
 
-function insertMessageHtml(msg) {
-    divChatBox.innerHTML = buildMessageHtml(msg) + divChatBox.innerHTML;
-}
-
 function sendNewMessage(newMessage, onFinished) {
-    insertMessageHtml(newMessage);
+    messagesArray.unshift(newMessage);
+
     onFinished();
 }
 
@@ -85,6 +82,8 @@ function onSubmitMessageClicked() {
     var newMessage = { userName: userName, messageText: messageText, imageUrl: imageUrl };
     sendNewMessage(newMessage, cleanNewMessageInputs);
 
+    displayMessages();
+    
     return false;
 }
 
@@ -109,44 +108,6 @@ buttonSubmitMsg.onclick = onSubmitMessageClicked;
 buttonLogin.onclick = onLoginClicked;
 buttonLogout.onclick = onLogoutClicked;
 
-//------------------------------------------------------------------
-// Firebase
-//
-
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyDTO5k3aS-mOZCSA2PJ1w8Eakn91xwtdg4",
-    authDomain: "pitputit-6af13.firebaseapp.com",
-    databaseURL: "https://pitputit-6af13.firebaseio.com",
-    projectId: "pitputit-6af13",
-    storageBucket: "pitputit-6af13.appspot.com",
-    messagingSenderId: "849608190982"
-};
-firebase.initializeApp(config);
-
-var messagesRef = firebase.database().ref('messages');
-
-// Load existing messages
-var loadMessages = function() {
-    messagesRef.once('value', function(snap) {
-        var messagesObj = snap.val();
-        messagesArray = flatten(messagesObj);
-        displayMessages();
-    });
-};
-
-var flatten = function(obj) {
-    var arr = [];
-    for (prop in obj) {
-        arr.push(obj[prop]);
-    }
-    return arr;
-}
-
-//
-// Firebase
-//------------------------------------------------------------------
-
 updateCurrentUser();
 
-loadMessages();
+displayMessages();
