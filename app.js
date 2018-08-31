@@ -115,34 +115,64 @@ firebase.initializeApp(config);
 
 var messagesRef = firebase.database().ref('messages');
 
+var pendingNewMessage;
+
 // Load existing messages and listen for new ones
 var loadMessages = function() {
     messagesRef.on('child_added', function(snap) {
-        console.log('child_added called with ' + (snap.val()));
-        insertMessageHtml(snap.val()); // show the new message in the chat box
-    })
+        var newMessage = snap.val();
+        console.log('child_added called with ' + JSON.stringify(newMessage));
+        if (newMessage.userName == userName) {
+            pendingNewMessage = newMessage;
+            setTimeout(function() {
+                if (pendingNewMessage) {
+                    insertMessageHtml(pendingNewMessage);
+                    pendingNewMessage = null;
+                }
+            }, 250);        
+    
+        } else {
+            insertMessageHtml(newMessage);
+        }
+    });
+
+    messagesRef.on('child_removed', function(snap) {
+        var removedMessage = snap.val();
+        console.log('child_removed called with ' + JSON.stringify(removedMessage));
+        if (pendingNewMessage && pendingNewMessage.userName == userName) {
+            pendingNewMessage = null;
+        }
+    });
 };
   
 function sendNewMessage(newMessage, imageFile, onFinished) {
     if (imageFile) {
-        var storageRef = firebase.storage().ref();
-        var imageRef = storageRef.child('messageImages/' + imageFile.name);
-        // TBD what if an image already exists with that name? => use also imageFile.lastModified
-        
+        var imageRef = firebase.storage().ref('messageImages/' + imageFile.name);        
         imageRef.put(imageFile).then(function onComplete(snapshot) {
             console.log("sendNewMessage: image upload done");
             snapshot.ref.getDownloadURL().then(function(downloadURL) {
                 console.log("sendNewMessage: image downloadURL = " + downloadURL);
                 newMessage.imageUrl = downloadURL;
-                sendNewMessage(newMessage, null, onFinished);
+                
+                pushMessageToDb(newMessage, function(isSuccess) {
+                    if (!isSuccess) {
+                        imageRef.delete()
+                        .then(() => console.log('Deleted the image ' +  imageFile.name) )
+                        .catch(err => console.error('Failed to deleted the image ' +  imageFile.name));
+                    }
+                    onFinished(isSuccess);
+                });                
             });
         }).catch(function(err) {
             alert("sendNewMessage: image upload failed: " + err.message);
             onFinished(false);
         });
-        return;
+    } else {
+        pushMessageToDb(newMessage, onFinished);
     }
+}
 
+function pushMessageToDb(newMessage, onFinished) {
     newMessage['userKey'] = isUserSignedIn() ? firebase.auth().currentUser.uid : "no-uid";
 
     messagesRef.push(newMessage, function onComplete(err) {
