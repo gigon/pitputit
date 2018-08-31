@@ -3,7 +3,7 @@ var userName = "Guest"; // The current user name
 var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
 
 function buildMessageHtml(msg) {
-    var messageHtml = "<div class='msgln'>";
+    var messageHtml = "<div class='msgln' id='" + msg.key + "'>";
     messageHtml += "<b>" + msg.userName + ":</b>";
     if (msg.imageUrl) {
         messageHtml += "<br /><img src='" + msg.imageUrl + "'><br />";
@@ -17,6 +17,11 @@ function buildMessageHtml(msg) {
 
 function insertMessageHtml(msg) {
     divChatBox.innerHTML = buildMessageHtml(msg) + divChatBox.innerHTML;
+}
+
+function removeMessageFromHtml(msg) {
+    var msgDiv = document.getElementById(msg.key);
+    msgDiv && divChatBox.removeChild(msgDiv);
 }
 
 function updateCurrentUser() {
@@ -115,33 +120,20 @@ firebase.initializeApp(config);
 
 var messagesRef = firebase.database().ref('messages');
 
-var pendingNewMessage;
-
 // Load existing messages and listen for new ones
 var loadMessages = function() {
     messagesRef.on('child_added', function(snap) {
         var newMessage = snap.val();
+        newMessage.key = snap.key;
         console.log('child_added called with ' + JSON.stringify(newMessage));
-        if (newMessage.userName == userName) {
-            pendingNewMessage = newMessage;
-            setTimeout(function() {
-                if (pendingNewMessage) {
-                    insertMessageHtml(pendingNewMessage);
-                    pendingNewMessage = null;
-                }
-            }, 250);        
-    
-        } else {
             insertMessageHtml(newMessage);
-        }
     });
 
     messagesRef.on('child_removed', function(snap) {
         var removedMessage = snap.val();
+        removedMessage.key = snap.key;
         console.log('child_removed called with ' + JSON.stringify(removedMessage));
-        if (pendingNewMessage && pendingNewMessage.userName == userName) {
-            pendingNewMessage = null;
-        }
+        removeMessageFromHtml(removedMessage);
     });
 };
   
