@@ -1,6 +1,8 @@
 
 var userName = "Guest"; // The current user name
 var userIconUrl = "https://upload.wikimedia.org/wikipedia/commons/d/d3/User_Circle.png"; // the current user icon url
+var userMessageCount = -1;
+var userDbRef;
 
 function buildMessageHtml(msg) {
     var messageHtml = "<div class='msgln' id='" + msg.key + "'>";
@@ -25,14 +27,16 @@ function removeMessageFromHtml(msg) {
 }
 
 function updateCurrentUser() {
-    spanUserName.innerHTML = userName;
     userIcon.src = userIconUrl;
 
     if (isUserSignedIn()) {
+        spanUserName.innerHTML = userName + ' (' + userMessageCount + ')';
+
         userIcon.style.display = "block";
         pLogout.style.display = "block";
         pLogin.style.display = "none";    
     } else {
+        spanUserName.innerHTML = userName;
         pLogin.style.display = "block";
         pLogout.style.display = "none";
         userIcon.style.display = "none";
@@ -126,7 +130,7 @@ var loadMessages = function() {
         var newMessage = snap.val();
         newMessage.key = snap.key;
         console.log('child_added called with ' + JSON.stringify(newMessage));
-            insertMessageHtml(newMessage);
+        insertMessageHtml(newMessage);
     });
 
     messagesRef.on('child_removed', function(snap) {
@@ -173,8 +177,45 @@ function pushMessageToDb(newMessage, onFinished) {
             onFinished(false);
         } else {
             console.log("sendNewMessage: done");
+            incrementUserMessageCount();
             onFinished(true);
         }
+    });
+}
+
+function getUserMessageCount() {
+    if (!userDbRef) {
+        console.error("getUserMessageCount: oops, no userDbRef");
+        return;
+    }
+
+    userDbRef.child('messageCount').once('value', function(snap) {
+        userMessageCount = snap.val();
+    });
+}
+
+function incrementUserMessageCount() {
+    if (!userDbRef) {
+        console.error("incrementUserMessageCount: oops, no userDbRef");
+        return;
+    }
+
+    userMessageCount++;
+
+    userDbRef.update({ "messageCount":  userMessageCount }).then(function() {
+        console.log("incrementUserMessageCount updated count to " + userMessageCount);
+        updateCurrentUser();
+    });
+}
+
+function updateUserRecord(user, onDone) {
+    userDbRef = firebase.database().ref('users/' + user.uid);
+    userDbRef.update({ "userName":  userName, "photoURL": userIconUrl }).then(function() {
+        userDbRef.child('messageCount').once('value', function(snap) {
+            userMessageCount = snap.val() || 0;
+            console.log("updateUserRecord userMessageCount = " + userMessageCount);
+            onDone();
+        });    
     });
 }
 
@@ -182,12 +223,15 @@ function onAuthStateChanged(user) {
     if (user) { // User is signed in!
         userName = user.displayName;
         userIconUrl =  user.photoURL || "";
+        
+        updateUserRecord(user, updateCurrentUser);
     } else {
         userName = "Guest";
         userIconUrl = "";
+        userDbRef = null;
+        userMessageCount = -1;
+        updateCurrentUser();
     }
-
-    updateCurrentUser();
 }
 
 // Sign in Firebase using popup auth and Google as the identity provider.
