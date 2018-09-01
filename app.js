@@ -200,11 +200,19 @@ function incrementUserMessageCount() {
         return;
     }
 
-    userMessageCount++;
-
-    userDbRef.update({ "messageCount":  userMessageCount }).then(function() {
-        console.log("incrementUserMessageCount updated count to " + userMessageCount);
-        updateCurrentUser();
+    userDbRef.transaction(function(userRecord) {
+        if (userRecord) {
+            userRecord.messageCount = userRecord.messageCount + 1;
+        } 
+        return userRecord;   
+    }, function onComplete(err, wasDone, snapshot) {
+        if (err) {
+            alert('Oops - incrementUserMessageCount error ' + err.message);
+        } else {
+            userMessageCount = snapshot.val().messageCount;
+            console.log("incrementUserMessageCount updated count to " + userMessageCount);
+            updateCurrentUser();
+        }
     });
 }
 
