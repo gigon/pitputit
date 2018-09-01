@@ -202,7 +202,8 @@ function incrementUserMessageCount() {
 
     userDbRef.transaction(function(userRecord) {
         if (userRecord) {
-            userRecord.messageCount = userRecord.messageCount + 1;
+            // if first time, messageCount is NaN
+            userRecord.messageCount = (userRecord.messageCount || 0) + 1;
         } 
         return userRecord;   
     }, function onComplete(err, wasDone, snapshot) {
